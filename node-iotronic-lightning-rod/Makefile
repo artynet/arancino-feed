@@ -6,18 +6,17 @@ include $(TOPDIR)/rules.mk
 
 PKG_NPM_NAME:=iotronic-lightning-rod
 PKG_NAME:=node-$(PKG_NPM_NAME)
-PKG_VERSION:=2.3.7
+PKG_VERSION:=2.3.9
 PKG_RELEASE:=2
 PKG_ORG:=@mdslab
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=ssh://git@git.smartme.io:20022/consulting/sacertis/iotronic-lightning-rod.git
-PKG_HASH:=d0454d10080018936fb89b744770cb17c4f1061b
+PKG_HASH:=9909c665baf98a7e0a1056b0038270f4ddce4e87
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=$(PKG_HASH)
 
-PKG_BUILD_DEPENDS:=node libc libpthread
 PKG_NODE_VERSION:=6.11.4
 PKG_USE_MIPS16:=0
 
@@ -38,9 +37,7 @@ endef
 
 NODEJS_CPU:=$(subst powerpc,ppc,$(subst aarch64,arm64,$(subst x86_64,x64,$(subst i386,ia32,$(ARCH)))))
 
-define Build/Prepare
-        $(INSTALL_DIR) $(PKG_BUILD_DIR)
-endef
+TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/fuse
 
 define Build/Compile
 	$(MAKE_VARS) \
@@ -50,7 +47,7 @@ define Build/Compile
 	npm_config_cache=$(TMP_DIR)/npm-cache \
 	npm_config_tmp=$(TMP_DIR)/npm-tmp \
 	PREFIX="$(PKG_INSTALL_DIR)/usr/" \
-	$(STAGING_DIR_HOSTPKG)/bin/npm install --build-from-source --target_arch=$(NODEJS_CPU) -g $(DL_DIR)/$(PKG_SOURCE)
+	$(STAGING_DIR_HOSTPKG)/bin/npm install --build-from-source --target_arch=$(NODEJS_CPU) -g $(PKG_BUILD_DIR)
 	rm -rf $(TMP_DIR)/npm-tmp
 	rm -rf $(TMP_DIR)/npm-cache
 endef
@@ -86,7 +83,7 @@ define Package/node-iotronic-lightning-rod/install
 	mkdir -p $(1)/var/log/iotronic/plugins
 	mkdir -p $(1)/etc/logrotate.d
 	touch $(1)/var/log/iotronic/lightning-rod.log
-	$(CP) $(1)/usr/lib/node_modules/$(PKG_ORG)/$(PKG_NPM_NAME)/etc/logrotate.d/lightning-rod.log $(1)/etc/logrotate.d/lightning-rod.log
+	# $(CP) $(1)/usr/lib/node_modules/$(PKG_ORG)/$(PKG_NPM_NAME)/etc/logrotate.d/lightning-rod.log $(1)/etc/logrotate.d/lightning-rod.log
 
 	# configure init.d 
 	$(INSTALL_DIR) $(1)/etc/init-cfg/
